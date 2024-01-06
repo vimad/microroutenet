@@ -1,8 +1,8 @@
-package org.example.warehouse.service;
+package org.example.payment.service;
 
 import jakarta.transaction.Transactional;
-import org.example.warehouse.entity.Product;
-import org.example.warehouse.repositoy.ProductRepository;
+import org.example.payment.entity.Product;
+import org.example.payment.repositoy.ProductRepository;
 import org.springframework.stereotype.Service;
 
 @Service

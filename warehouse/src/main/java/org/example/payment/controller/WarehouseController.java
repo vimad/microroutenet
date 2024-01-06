@@ -1,7 +1,7 @@
-package org.example.warehouse.controller;
+package org.example.payment.controller;
 
-import org.example.warehouse.entity.Product;
-import org.example.warehouse.service.ProductService;
+import org.example.payment.entity.Product;
+import org.example.payment.service.ProductService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;

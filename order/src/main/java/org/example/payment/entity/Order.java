@@ -1,4 +1,4 @@
-package org.example.warehouse.entity;
+package org.example.payment.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

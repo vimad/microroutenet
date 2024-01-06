@@ -1,6 +1,6 @@
-package org.example.warehouse.repositoy;
+package org.example.payment.repositoy;
 
-import org.example.warehouse.entity.Product;
+import org.example.payment.entity.Product;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
