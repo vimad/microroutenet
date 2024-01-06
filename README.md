@@ -1,0 +1,1 @@
+minikube -p microroutenet docker-env | Invoke-Expression
