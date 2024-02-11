@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: payment
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      uri: http://localhost:8888
+      request-connect-timeout: 5000
+      request-read-timeout: 5000
+      fail-fast: true
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
+
+microroutenet-configs:
+  local-communication:
+    port: 80
+      
