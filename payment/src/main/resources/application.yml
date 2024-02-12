@@ -1,6 +1,8 @@
 server:
-  port: 9002
+  port: 8083
 spring:
+  application:
+    name: payment-internal
   datasource:
     url: jdbc:postgresql://localhost:5432/microroutenet
     username: postgres

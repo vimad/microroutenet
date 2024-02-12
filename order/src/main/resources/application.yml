@@ -1,6 +1,9 @@
 server:
-  port: 9001
+  port: 8081
+   
 spring:
+  application:
+    name: order-internal
   datasource:
     url: jdbc:postgresql://localhost:5432/microroutenet
     username: postgres

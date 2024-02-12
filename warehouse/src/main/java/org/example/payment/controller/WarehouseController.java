@@ -17,8 +17,13 @@ public class WarehouseController {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/reserve/{id}")
     public Product reserve(@PathVariable("id") Long id) {
         return productService.reserve(id);
+    }
+
+    @GetMapping("/{id}")
+    public Product getById(@PathVariable("id") Long id) {
+        return productService.findById(id);
     }
 }

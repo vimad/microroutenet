@@ -21,4 +21,8 @@ public class ProductService {
         product.setReservedCount(product.getReservedCount() + 1); 
         return product;
     }
+
+    public Product findById(Long id) {
+        return repository.findById(id).orElseThrow();
+    }
 }
