@@ -18,5 +18,7 @@ management:
 
 microroutenet-configs:
   local-communication:
-    port: 80
-      
+    port: 8083
+
+server:
+  port: 9093
