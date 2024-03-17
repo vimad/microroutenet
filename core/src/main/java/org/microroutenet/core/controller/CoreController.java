@@ -3,6 +3,7 @@ package org.microroutenet.core.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.microroutenet.core.CoreConfig;
 import org.microroutenet.core.model.ResponseModel;
+import org.microroutenet.core.service.InterComHandler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,10 +14,12 @@ import org.springframework.web.client.RestClient;
 public class CoreController {
     
     private final CoreConfig coreConfig;
+    private final InterComHandler interComHandler;
     private final RestClient restClient = RestClient.create();
 
-    public CoreController(CoreConfig coreConfig) {
+    public CoreController(CoreConfig coreConfig, InterComHandler interComHandler) {
         this.coreConfig = coreConfig;
+        this.interComHandler = interComHandler;
     }
 
     @RequestMapping
@@ -29,12 +32,11 @@ public class CoreController {
     private ResponseModel processRequest(HttpServletRequest request) {
         String method = request.getMethod();
         String path = request.getServletPath();
-        if (path.equals("internal")) {
-            
+        if (path.contains("internal")) {
+            return interComHandler.handle(request);
         } else {
             return forwardToRealService(request);
         }
-        return null;
     }
 
     private ResponseModel forwardToRealService(HttpServletRequest request) {

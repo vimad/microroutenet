@@ -1,4 +1,4 @@
-package org.microroutenet.core.model;
+package org.example.payment.model;
 
 import lombok.Getter;
 import lombok.Setter;
