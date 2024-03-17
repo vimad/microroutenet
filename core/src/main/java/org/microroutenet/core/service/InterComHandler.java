@@ -19,23 +19,19 @@ import org.microroutenet.PluginHook;
 @Service
 public class InterComHandler {
 
-    private final RestClient restClient = RestClient.create();
+    
     private final CoreConfig coreConfig;
-    private final RestConfig restConfig;
     private final ObjectMapper objectMapper;
     
     private final Map<String, PluginHook> hooks = new HashMap<>();
 
-    public InterComHandler(CoreConfig coreConfig, RestConfig restConfig, ObjectMapper objectMapper) {
+    public InterComHandler(CoreConfig coreConfig, ObjectMapper objectMapper) {
         this.coreConfig = coreConfig;
-        this.restConfig = restConfig;
         this.objectMapper = objectMapper;
     }
 
     @SneakyThrows
     public ResponseModel handle(HttpServletRequest request) {
-        String method = request.getMethod();
-        String path = request.getServletPath();
         String responseString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
 
         FromServiceRequestModel fromServiceRequestModel = objectMapper.readValue(responseString, FromServiceRequestModel.class);
@@ -43,11 +39,7 @@ public class InterComHandler {
                 .stream().filter(ic -> ic.getName().equals(fromServiceRequestModel.getName()))
                 .findFirst()
                 .get();
-        if ("rest".equals(interCommunication.getPlugin())) {
-            return handleRestRequest(fromServiceRequestModel);
-        } else {
-            return handleFromPlugin(interCommunication, fromServiceRequestModel);
-        }
+        return handleFromPlugin(interCommunication, fromServiceRequestModel);
     }
 
     @SneakyThrows
@@ -80,32 +72,5 @@ public class InterComHandler {
             }
         }
         return objectMapper.writeValueAsString(map);
-    }
-
-    private ResponseModel handleRestRequest(FromServiceRequestModel fromServiceRequestModel) {
-        RestConfig.Configs configs = restConfig.getInfo().stream().filter(info -> info.getName().equals(fromServiceRequestModel.getName()))
-                .findFirst().get();
-        if (configs.getMethod().equals("GET")) {
-            String api = configs.getApi();
-            if (StringUtils.hasText(fromServiceRequestModel.getRequestPayload())) {
-                String[] split = fromServiceRequestModel.getRequestPayload().split(";");
-                for (String keyValue : split) {
-                    String[] keyValues = keyValue.split("=");
-                    String key = keyValues[0];
-                    String value = keyValues[1];
-                    api = api.replace("{" + key + "}", value);
-                }
-            }
-            String response = restClient.get()
-                    .uri(api)
-                    .retrieve()
-                    .body(String.class);
-
-            return ResponseModel.builder()
-                    .status(200)
-                    .response(response)
-                    .build();
-        }
-        return ResponseModel.builder().build();
     }
 }
