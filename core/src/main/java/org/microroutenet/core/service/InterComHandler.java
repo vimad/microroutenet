@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.microroutenet.PluginHook;
 
 @Service
 public class InterComHandler {
@@ -20,6 +23,8 @@ public class InterComHandler {
     private final CoreConfig coreConfig;
     private final RestConfig restConfig;
     private final ObjectMapper objectMapper;
+    
+    private final Map<String, PluginHook> hooks = new HashMap<>();
 
     public InterComHandler(CoreConfig coreConfig, RestConfig restConfig, ObjectMapper objectMapper) {
         this.coreConfig = coreConfig;
@@ -40,11 +45,41 @@ public class InterComHandler {
                 .get();
         if ("rest".equals(interCommunication.getPlugin())) {
             return handleRestRequest(fromServiceRequestModel);
+        } else {
+            return handleFromPlugin(interCommunication, fromServiceRequestModel);
         }
+    }
 
-
-        return null;
-        
+    @SneakyThrows
+    private ResponseModel handleFromPlugin(CoreConfig.InterCommunication interCommunication, FromServiceRequestModel fromServiceRequestModel) {
+        String configForPlugin = getConfigForPlugin(interCommunication.getName(), interCommunication.getPlugin());
+        String className = coreConfig.getPlugins().get(interCommunication.getPlugin() + "-class-name");
+        PluginHook pluginHook = hooks.get(interCommunication.getName());
+        if (pluginHook == null) {
+            Class<?> aClass = Class.forName(className);
+            pluginHook = (PluginHook)aClass.getConstructor().newInstance();
+            pluginHook.startPlugin(configForPlugin);
+            hooks.put(interCommunication.getName(), pluginHook);
+        }
+        String response = pluginHook.handleRequest(fromServiceRequestModel.getRequestPayload());
+        return ResponseModel.builder()
+                .status(200)
+                .response(response)
+                .build();
+    }
+    
+    @SneakyThrows
+    private String getConfigForPlugin(String name, String plugin) {
+        Map<String, String> map = new HashMap<>();
+        for (Map.Entry<String, String> stringStringEntry : coreConfig.getPlugins().entrySet()) {
+            String key = stringStringEntry.getKey();
+            String value = stringStringEntry.getValue();
+            if (key.startsWith(plugin)) {
+                key = key.replaceFirst(plugin + "-" + name + ".", "");
+                map.put(key, value);
+            }
+        }
+        return objectMapper.writeValueAsString(map);
     }
 
     private ResponseModel handleRestRequest(FromServiceRequestModel fromServiceRequestModel) {

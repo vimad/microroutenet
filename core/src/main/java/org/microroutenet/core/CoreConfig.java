@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
+import java.util.Map;
 
 @ConfigurationProperties(prefix = "microroutenet-configs")
 @Getter
@@ -13,6 +14,7 @@ public class CoreConfig {
     
     private LocalCommunication localCommunication;
     private List<InterCommunication> interCommunication;
+    private Map<String, String> plugins;
     
     @Getter
     @Setter

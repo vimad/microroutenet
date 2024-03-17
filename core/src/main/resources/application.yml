@@ -23,7 +23,7 @@ microroutenet-configs:
     - name: payment-completed-order
       plugin: rest
     - name: payment-completed-warehouse
-      plugin: rest
+      plugin: kafka
   rest:
     info: 
       - name: payment-completed-order
@@ -32,6 +32,10 @@ microroutenet-configs:
       - name: payment-completed-warehouse
         api: http://localhost:8082/product/reserve/{id}
         method: GET
+  plugins:
+    kafka-class-name: org.microroutenet.KafkaPlugin
+    kafka-payment-completed-warehouse:
+      topic: warehouse-topic
           
 
 
