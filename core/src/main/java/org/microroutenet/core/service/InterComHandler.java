@@ -46,13 +46,11 @@ public class InterComHandler {
     private ResponseModel handleFromPlugin(CoreConfig.InterCommunication interCommunication, FromServiceRequestModel fromServiceRequestModel) {
         String configForPlugin = getConfigForPlugin(interCommunication.getName(), interCommunication.getPlugin());
         String className = coreConfig.getPlugins().get(interCommunication.getPlugin() + "-class-name");
-        PluginHook pluginHook = hooks.get(interCommunication.getName());
-        if (pluginHook == null) {
-            Class<?> aClass = Class.forName(className);
-            pluginHook = (PluginHook)aClass.getConstructor().newInstance();
-            pluginHook.startPlugin(configForPlugin);
-            hooks.put(interCommunication.getName(), pluginHook);
-        }
+//        PluginHook pluginHook = hooks.get(interCommunication.getName());
+        Class<?> aClass = Class.forName(className);
+        PluginHook pluginHook = (PluginHook)aClass.getConstructor().newInstance();
+        pluginHook.startPlugin(configForPlugin);
+        hooks.put(interCommunication.getName(), pluginHook);
         String response = pluginHook.handleRequest(fromServiceRequestModel.getRequestPayload());
         return ResponseModel.builder()
                 .status(200)
