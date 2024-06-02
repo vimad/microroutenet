@@ -21,27 +21,15 @@ public class InterComHandler {
     
     private final CoreConfig coreConfig;
     private final ObjectMapper objectMapper;
-    private final AsyncEventConsumer asyncEventConsumer;
     
     private final Map<String, PluginHook> hooks = new HashMap<>();
 
-    public InterComHandler(CoreConfig coreConfig, ObjectMapper objectMapper, AsyncEventConsumer asyncEventConsumer) {
+    public InterComHandler(CoreConfig coreConfig, ObjectMapper objectMapper) {
         this.coreConfig = coreConfig;
         this.objectMapper = objectMapper;
-        this.asyncEventConsumer = asyncEventConsumer;
-        initializeListeners();
     }
 
-    private void initializeListeners() {
-        if (coreConfig.getInterCommunication() == null) {
-            return;
-        }
-        for (CoreConfig.InterCommunication interCommunication : coreConfig.getInterCommunication()) {
-            if ("consumer".equals(interCommunication.getType())) {
-                startAndGetPluginHook(interCommunication);
-            }
-        }
-    }
+
 
     @SneakyThrows
     public ResponseModel handle(HttpServletRequest request) {

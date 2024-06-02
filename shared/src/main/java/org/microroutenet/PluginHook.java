@@ -5,4 +5,5 @@ public interface PluginHook {
     String handleRequest(String request);
 
     default void registerAsyncEventConsumer(AsyncEventConsumer eventConsumer) {}
+    default void stopPlugin() {}
 }
