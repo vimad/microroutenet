@@ -3,14 +3,13 @@ package org.microroutenet.core.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
+import org.microroutenet.AsyncEventConsumer;
 import org.microroutenet.core.CoreConfig;
-import org.microroutenet.core.RestConfig;
 import org.microroutenet.core.model.FromServiceRequestModel;
 import org.microroutenet.core.model.ResponseModel;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,12 +21,26 @@ public class InterComHandler {
     
     private final CoreConfig coreConfig;
     private final ObjectMapper objectMapper;
+    private final AsyncEventConsumer asyncEventConsumer;
     
     private final Map<String, PluginHook> hooks = new HashMap<>();
 
-    public InterComHandler(CoreConfig coreConfig, ObjectMapper objectMapper) {
+    public InterComHandler(CoreConfig coreConfig, ObjectMapper objectMapper, AsyncEventConsumer asyncEventConsumer) {
         this.coreConfig = coreConfig;
         this.objectMapper = objectMapper;
+        this.asyncEventConsumer = asyncEventConsumer;
+        initializeListeners();
+    }
+
+    private void initializeListeners() {
+        if (coreConfig.getInterCommunication() == null) {
+            return;
+        }
+        for (CoreConfig.InterCommunication interCommunication : coreConfig.getInterCommunication()) {
+            if ("consumer".equals(interCommunication.getType())) {
+                startAndGetPluginHook(interCommunication);
+            }
+        }
     }
 
     @SneakyThrows
@@ -44,12 +57,7 @@ public class InterComHandler {
 
     @SneakyThrows
     private ResponseModel handleFromPlugin(CoreConfig.InterCommunication interCommunication, FromServiceRequestModel fromServiceRequestModel) {
-        String configForPlugin = getConfigForPlugin(interCommunication.getName(), interCommunication.getPlugin());
-        String className = coreConfig.getPlugins().get(interCommunication.getPlugin() + "-class-name");
-//        PluginHook pluginHook = hooks.get(interCommunication.getName());
-        Class<?> aClass = Class.forName(className);
-        PluginHook pluginHook = (PluginHook)aClass.getConstructor().newInstance();
-        pluginHook.startPlugin(configForPlugin);
+        PluginHook pluginHook = startAndGetPluginHook(interCommunication);
         hooks.put(interCommunication.getName(), pluginHook);
         String response = pluginHook.handleRequest(fromServiceRequestModel.getRequestPayload());
         return ResponseModel.builder()
@@ -57,7 +65,18 @@ public class InterComHandler {
                 .response(response)
                 .build();
     }
-    
+
+    @SneakyThrows
+    private PluginHook startAndGetPluginHook(CoreConfig.InterCommunication interCommunication) {
+        String configForPlugin = getConfigForPlugin(interCommunication.getName(), interCommunication.getPlugin());
+        String className = coreConfig.getPlugins().get(interCommunication.getPlugin() + "-class-name");
+//        PluginHook pluginHook = hooks.get(interCommunication.getName());
+        Class<?> aClass = Class.forName(className);
+        PluginHook pluginHook = (PluginHook)aClass.getConstructor().newInstance();
+        pluginHook.startPlugin(configForPlugin);
+        return pluginHook;
+    }
+
     @SneakyThrows
     private String getConfigForPlugin(String name, String plugin) {
         Map<String, String> map = new HashMap<>();

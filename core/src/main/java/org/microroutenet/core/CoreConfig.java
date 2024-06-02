@@ -26,5 +26,6 @@ public class CoreConfig {
     public static class InterCommunication {
         private String name;
         private String plugin;
+        private String type;
     }
 }
