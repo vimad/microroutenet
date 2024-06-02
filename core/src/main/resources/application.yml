@@ -1,6 +1,6 @@
 spring:
   application:
-    name: payment
+    name: ${APP_NAME}
   config:
     import: "optional:configserver:"
   cloud:
@@ -16,26 +16,5 @@ management:
       exposure:
         include: refresh
 
-microroutenet-configs:
-  local-communication:
-    port: 8083
-  inter-communication:
-    - name: payment-completed-order
-      plugin: rest
-    - name: payment-completed-warehouse
-      plugin: kafka
-  plugins:
-    kafka-class-name: org.microroutenet.KafkaPlugin
-    rest-class-name: org.microroutenet.core.service.RestPlugin
-    kafka-payment-completed-warehouse:
-      topic: warehouse-topic
-    rest-payment-completed-order:
-      name: payment-completed-order
-      method: GET
-      api: http://localhost:8081/order/{id}/{status}
-          
-
-
-
 server:
-  port: 9093
+  port: ${APP_PORT}
