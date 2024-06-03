@@ -20,7 +20,7 @@ public class PaymentService {
         orderModel.setName("payment-completed-order");
         orderModel.setRequestPayload("id="+ id +";status=COMPLETED");
         String orderResult = restClient.post()
-                .uri("http://localhost:9093/internal")
+                .uri("http://localhost:7073/internal")
                 .body(orderModel)
                 .retrieve()
                 .body(String.class);
@@ -32,7 +32,7 @@ public class PaymentService {
         warehouseModel.setName("payment-completed-warehouse");
         warehouseModel.setRequestPayload("id="+ id);
         String warehouseResult = restClient.post()
-                .uri("http://localhost:9093/internal")
+                .uri("http://localhost:7073/internal")
                 .body(warehouseModel)
                 .retrieve()
                 .body(String.class);
