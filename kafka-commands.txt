@@ -1,11 +1,5 @@
-kafka-topics.sh --bootstrap-server localhost:9092 --topic first_topic --create --partitions 3 --replication-factor 1
+kafka-topics.sh --bootstrap-server localhost:9092 --topic payment_completed --create --partitions 3 --replication-factor 1
 
-kafka-console-producer.sh --bootstrap-server localhost:9092 --topic first_topic
+kafka-console-producer.sh --bootstrap-server localhost:9092 --topic payment_completed
 
-kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic first_topic --from-beginning
-
-
--------
-java -Dspring.config.additional-location=<path-to-application-local.yml> --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED -jar kafka-ui-api-v0.7.2.jar
-
-java --add-opens java.rmi/javax.rmi.ssl=ALL-UNNAMED -jar kafka-ui-api-v0.7.2.jar
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic payment_completed --from-beginning
