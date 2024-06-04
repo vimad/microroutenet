@@ -10,4 +10,8 @@ import lombok.Setter;
 @Setter
 public class KafkaConsumerConfig extends BaseConfig {
     private String destination;
+    @JsonProperty("group-id")
+    private String groupId;
+    @JsonProperty("destination-method")
+    private String destinationMethod;
 }

@@ -1,43 +1,72 @@
 package org.microroutenet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Setter;
 import lombok.SneakyThrows;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
+import java.time.Duration;
+import java.util.Collections;
 import java.util.Properties;
 
 public class Consumer {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final KafkaProducer<String, String> producer;
-    private final KafkaProducerConfig kafkaProducerConfig;
+    @Setter
+    private boolean consume = true;
+    private final AsyncEventConsumer eventConsumer;
 
     @SneakyThrows
-    public Consumer(String config) {
-        kafkaProducerConfig = objectMapper.readValue(config, KafkaProducerConfig.class);
-
+    public Consumer(KafkaConsumerConfig kafkaConsumerConfig, AsyncEventConsumer eventConsumer) {
+        this.eventConsumer = eventConsumer;
         // create Producer properties
         Properties properties = new Properties();
-        properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProducerConfig.getBootstrapServers());
-        properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConsumerConfig.getBootstrapServers());
+        properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, kafkaConsumerConfig.getGroupId());
+        properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         // create the producer
-        producer = new KafkaProducer<>(properties);
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+
+        // subscribe consumer to our topic(s)
+        consumer.subscribe(Collections.singletonList(kafkaConsumerConfig.getTopic()));
+
+        Thread.ofPlatform().start(() -> loopConsuming(kafkaConsumerConfig, eventConsumer, consumer));
     }
 
-    @SneakyThrows
-    public void produce(String payload) {
-        // create a producer record
-        ProducerRecord<String, String> producerRecord =
-                new ProducerRecord<>(kafkaProducerConfig.getTopic(), payload);
+    private void loopConsuming(KafkaConsumerConfig kafkaConsumerConfig, AsyncEventConsumer eventConsumer, KafkaConsumer<String, String> consumer) {
+        while(consume){
+            ConsumerRecords<String, String> records =
+                    consumer.poll(Duration.ofMillis(100));
 
-        producer.send(producerRecord);
-
-        producer.flush();
-        producer.close();
+            for (ConsumerRecord<String, String> record : records){
+                consumeRecord(kafkaConsumerConfig, eventConsumer, record);
+            }
+        }
     }
+
+    private static void consumeRecord(KafkaConsumerConfig kafkaConsumerConfig, AsyncEventConsumer eventConsumer, ConsumerRecord<String, String> record) {
+        String recordValue = record.value();
+        System.out.println("consuming ----------" + recordValue);
+        AsyncEvent asyncEvent = new AsyncEvent();
+        asyncEvent.setMethod(kafkaConsumerConfig.getDestinationMethod());
+
+        String destination = kafkaConsumerConfig.getDestination();
+        if (kafkaConsumerConfig.getDestinationMethod().equals("GET")) {
+            String[] split = recordValue.split(";");
+            for (String keyValue : split) {
+                String[] keyValues = keyValue.split("=");
+                String key = keyValues[0];
+                String value = keyValues[1];
+                destination = destination.replace("{" + key + "}", value);
+            }
+            asyncEvent.setDestination(destination);
+            eventConsumer.accept(asyncEvent);
+        }
+    }
+
 }

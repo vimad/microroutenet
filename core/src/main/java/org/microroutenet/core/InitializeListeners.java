@@ -58,6 +58,7 @@ public class InitializeListeners {
 //        PluginHook pluginHook = hooks.get(interCommunication.getName());
         Class<?> aClass = Class.forName(className);
         PluginHook pluginHook = (PluginHook)aClass.getConstructor().newInstance();
+        pluginHook.registerAsyncEventConsumer(asyncEventConsumer);
         return pluginHook;
     }
 

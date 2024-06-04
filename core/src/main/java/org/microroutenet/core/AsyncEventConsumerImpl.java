@@ -19,10 +19,11 @@ public class AsyncEventConsumerImpl implements AsyncEventConsumer {
         String method = event.getMethod();
         String uri = event.getDestination();
         if ("GET".equals(method)) {
-            restClient.get()
+            String body = restClient.get()
                     .uri(uri)
                     .retrieve()
                     .body(String.class);
+            System.out.println("AsyncEventConsumerImpl::forwardToRealService: " + body);
         }
     }
 }
