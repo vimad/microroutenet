@@ -16,8 +16,8 @@ public class Producer {
     private final KafkaProducerConfig kafkaProducerConfig;
 
     @SneakyThrows
-    public Producer(String config) {
-        kafkaProducerConfig = objectMapper.readValue(config, KafkaProducerConfig.class);
+    public Producer(KafkaProducerConfig producerConfig) {
+        kafkaProducerConfig = producerConfig;
 
         // create Producer properties
         Properties properties = new Properties();
