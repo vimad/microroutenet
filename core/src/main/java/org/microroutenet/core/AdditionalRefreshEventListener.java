@@ -21,5 +21,6 @@ public class AdditionalRefreshEventListener implements ApplicationListener<Envir
 
     private void performAdditionalTask() {
         initializeListeners.stopAllPlugins();
+        initializeListeners.initializeListeners();
     }
 }
